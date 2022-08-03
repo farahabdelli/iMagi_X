@@ -58,12 +58,12 @@ if choix_page == "Accueil":
         st.markdown(
             '<p class="intro"><b>Passez à la page suivante pour voir les résultats. Bonne lecture !</b></p>',
             unsafe_allow_html=True)
-    c1, _, c2, _, _, _ = st.columns(6)
-    with c1:
+
+
         st.subheader("Pour visiter le site officiel :")
 
         st.write("• [Le site](https://www.piscines-magiline.fr)")
-    with c2:
+
         lottie_accueil = load_lottieurl('https://assets2.lottiefiles.com/packages/lf20_xRmNN8.json')
         st_lottie(lottie_accueil, height=200)
 #*******************************************
