@@ -30,7 +30,7 @@ This app predicts the **Iris flower** type!
     with c2:
         st.write("##")
         st.write("##")
-        st.image("images/magiline.png")
+        st.image("images/magi.png")
     st.write("##")
     with c1:
         st.write("##")
