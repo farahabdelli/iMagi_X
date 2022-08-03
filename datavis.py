@@ -20,33 +20,47 @@ choix_page = st.sidebar.radio(label="", options=PAGES)
 
 ############# Page 1 #############
 if choix_page == "Accueil":
-    st.write("""
-# Piscines Magiline
-This app predicts the **Iris flower** type!
-""")
-   
     st.write("---")
     c1, c2 = st.columns((3, 2))
     with c2:
         st.write("##")
         st.write("##")
         st.image("images/magi.png")
-    st.write("##")
+
+
+
     with c1:
+        st.write("""
+# Comment peut-on prédire l'usage d'une piscine Magiline grâce à la data ?
+""")
         st.write("##")
         st.markdown(
-            '<p class="intro">Bienvenue sur la <b>no-code AI platform</b> ! Déposez vos datasets csv ou excel ou choisissez en un parmi ceux proposés et commencez votre analyse dès maintenant ! Cherchez les variables les plus intéressantes, visualisez vos données, et créez vos modèles de Machine Learning en toute simplicité.' +
-            ' Si vous choisissez de travailler avec votre dataset et que vous voulez effectuez des modifications sur celui-ci, il faudra le télécharger une fois les modifications faites pour pouvoir l\'utiliser sur les autres pages. </p>',
+            '<p class="intro">Afin de valider ma thèse professionnelle, j''ai choisi de travailler sur un sujet bien particulier qui est l''étude des comportements des différents équipements d''une piscine Magiline à travers les différents capteurs existants. Cette étude permet d''identifier quels sont les paramètres permettant de prédire la présence dans le bassin.</p>',
+            unsafe_allow_html=True)
+
+        st.markdown(
+            '<p class="intro">En vu de réaliser tout ce qui précède, j''ai mis en place une infrastructure Big Data permettant à la fois de collecter, stocker, analyser et enfin, visualiser les données traitées. Accompagnée d''un traitement en temps réel des flux de données générées par la solution domotique i-MAGI-X et de plusieurs algorithmes d''apprentissage automatiques. Ce traitement est basé sur l''analyses des sondes (pH, Redox), des pompes (filtration, chauffage) et des différents équipements en options tels que la nage à contre courant , les robots de nettoyages et les dispositifs de sécurité ,etc.</p>',
+            unsafe_allow_html=True)
+
+        st.markdown(
+            '<p class="intro">Cette application WEB est la dernière étape du processus. Il s''agit de mettre le modèle résultant en production. L''objectif est de mettre les connaissances acquises grâce à la modélisation dans le processus de prise de décision sous une forme appropriée.</p>',
             unsafe_allow_html=True)
         st.markdown(
-            '<p class="intro">Un tutoriel sur l\'utilisation de ce site est disponible sur le repo Github. En cas de bug ou d\'erreur veuillez m\'en informer par mail ou sur Discord.</p>',
+            '<p class="intro">Pour déployer ma solution, on sert des outils suivants :</p>',
             unsafe_allow_html=True)
         st.markdown(
-            '<p class="intro"><b>Commencez par choisir un dataset dans la section Dataset !</b></p>',
+            '<p class="intro">- Github : il stocke le code de l’application, le code de la modélisation, le modèle enregistré, les données et un fichier requirements.txt qui contient toutes les librairies dont l’application a besoin pour fonctionner </p>',
+            unsafe_allow_html=True)
+        st.markdown(
+            '<p class="intro">- Streamlit Cloud : il construit et déploie l’application web à partir du code stocké sur Github et héberge la solution sur son serveur.</p>',
+            unsafe_allow_html=True)
+        
+        st.markdown(
+            '<p class="intro"><b>Passez à la page suivante pour voir les résultats. Bonne lecture !</b></p>',
             unsafe_allow_html=True)
     c1, _, c2, _, _, _ = st.columns(6)
     with c1:
-        st.subheader("Liens")
+        st.subheader("Pour visiter le site officiel :")
 
         st.write("• [Le site](https://www.piscines-magiline.fr)")
     with c2:
