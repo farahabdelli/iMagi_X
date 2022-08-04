@@ -5,6 +5,54 @@ from sklearn.ensemble import RandomForestClassifier
 from streamlit_lottie import st_lottie
 import requests
 
+
+####### html/css config ########
+st.set_page_config(layout="wide", page_title="No code AI", menu_items={
+    'About': "No-code AI Platform - réalisé par Antonin"
+})
+
+st.markdown("""
+<style>
+.first_titre {
+    font-size:75px !important;
+    font-weight: bold;
+    box-sizing: border-box;
+    text-align: center;
+    width: 100%;
+}
+.intro{
+    text-align: justify;
+    font-size:20px !important;
+}
+.grand_titre {
+    font-size:30px !important;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: underline;
+    text-decoration-color: #4976E4;
+    text-decoration-thickness: 5px;
+}
+.section{
+    font-size:20px !important;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: underline;
+    text-decoration-color: #111111;
+    text-decoration-thickness: 3px;
+}
+.petite_section{
+    font-size:16px !important;
+    font-weight: bold;
+}
+.nom_colonne_page3{
+    font-size:17px !important;
+    text-decoration: underline;
+    text-decoration-color: #000;
+    text-decoration-thickness: 1px;
+}
+</style>
+""", unsafe_allow_html=True)
+
 def load_lottieurl(url: str):
     r = requests.get(url)
     if r.status_code != 200:
@@ -18,54 +66,51 @@ with st.sidebar:
 choix_page = st.sidebar.radio(label="", options=PAGES)
 
 
+
+st.image("images/magiline.png",use_column_width=None)
+
 ############# Page 1 #############
 if choix_page == "Accueil":
-    st.write("---")
-    c1, c2 = st.columns((3, 2))
-    with c2:
-        st.write("##")
-        st.write("##")
-        st.image("images/magi.png")
+   # st.write("---")
+    st.write("##")
 
 
-
-    with c1:
-        st.write("""
+    st.write("""
 # Comment peut-on prédire l'usage d'une piscine Magiline grâce à la data ?
 """)
-        st.write("##")
-        st.markdown(
-            '<p class="intro">Afin de valider ma thèse professionnelle, j''ai choisi de travailler sur un sujet bien particulier qui est l''étude des comportements des différents équipements d''une piscine Magiline à travers les différents capteurs existants. Cette étude permet d''identifier quels sont les paramètres permettant de prédire la présence dans le bassin.</p>',
-            unsafe_allow_html=True)
+    st.write("##")
+    st.markdown(
+    "<p class='intro'>Afin de valider ma thèse professionnelle, j'ai choisi de travailler sur un sujet bien particulier qui est l'étude des comportements des différents équipements d'une piscine Magiline à travers les différents capteurs existants. Cette étude permet d'identifier quels sont les paramètres permettant de prédire la présence dans le bassin.</p>",
+    unsafe_allow_html=True)
 
-        st.markdown(
-            '<p class="intro">En vu de réaliser tout ce qui précède, j''ai mis en place une infrastructure Big Data permettant à la fois de collecter, stocker, analyser et enfin, visualiser les données traitées. Accompagnée d''un traitement en temps réel des flux de données générées par la solution domotique i-MAGI-X et de plusieurs algorithmes d''apprentissage automatiques. Ce traitement est basé sur l''analyses des sondes (pH, Redox), des pompes (filtration, chauffage) et des différents équipements en options tels que la nage à contre courant , les robots de nettoyages et les dispositifs de sécurité ,etc.</p>',
-            unsafe_allow_html=True)
+    st.markdown(
+    "<p class='intro'>En vu de réaliser tout ce qui précède, j'ai mis en place une infrastructure Big Data permettant à la fois de collecter, stocker, analyser et enfin, visualiser les données traitées. Accompagnée d'un traitement en temps réel des flux de données générées par la solution domotique i-MAGI-X et de plusieurs algorithmes d'apprentissage automatiques. Ce traitement est basé sur l'analyses des sondes (pH, Redox), des pompes (filtration, chauffage) et des différents équipements en options tels que la nage à contre courant , les robots de nettoyages et les dispositifs de sécurité ,etc.</p>",
+    unsafe_allow_html=True)
 
-        st.markdown(
-            '<p class="intro">Cette application WEB est la dernière étape du processus. Il s''agit de mettre le modèle résultant en production. L''objectif est de mettre les connaissances acquises grâce à la modélisation dans le processus de prise de décision sous une forme appropriée.</p>',
-            unsafe_allow_html=True)
-        st.markdown(
-            '<p class="intro">Pour déployer ma solution, on sert des outils suivants :</p>',
-            unsafe_allow_html=True)
-        st.markdown(
-            '<p class="intro">- Github : il stocke le code de l’application, le code de la modélisation, le modèle enregistré, les données et un fichier requirements.txt qui contient toutes les librairies dont l’application a besoin pour fonctionner </p>',
-            unsafe_allow_html=True)
-        st.markdown(
-            '<p class="intro">- Streamlit Cloud : il construit et déploie l’application web à partir du code stocké sur Github et héberge la solution sur son serveur.</p>',
-            unsafe_allow_html=True)
-        
-        st.markdown(
-            '<p class="intro"><b>Passez à la page suivante pour voir les résultats. Bonne lecture !</b></p>',
-            unsafe_allow_html=True)
+    st.markdown(
+    "<p class='intro'>Cette application WEB est la dernière étape du processus. Il s'agit de mettre le modèle résultant en production. L'objectif est de mettre les connaissances acquises grâce à la modélisation dans le processus de prise de décision sous une forme appropriée.</p>",
+    unsafe_allow_html=True)
+    st.markdown(
+    "<p class='intro'>Pour déployer ma solution, on sert des outils suivants :</p>",
+    unsafe_allow_html=True)
+    st.markdown(
+    "<p class='intro'>- Github : il stocke le code de l’application, le code de la modélisation, le modèle enregistré, les données et un fichier requirements.txt qui contient toutes les librairies dont l’application a besoin pour fonctionner </p>",
+    unsafe_allow_html=True)
+    st.markdown(
+    "<p class='intro'>- Streamlit Cloud : il construit et déploie l’application web à partir du code stocké sur Github et héberge la solution sur son serveur.</p>",
+    unsafe_allow_html=True)
+
+    st.markdown(
+    "<p class='intro'><b>Passez à la page suivante pour voir les résultats. Bonne lecture !</b></p>",
+    unsafe_allow_html=True)
 
 
-        st.subheader("Pour visiter le site officiel :")
+    st.subheader("Pour visiter le site officiel :")
 
-        st.write("• [Le site](https://www.piscines-magiline.fr)")
+    st.write("• [Le site](https://www.piscines-magiline.fr)")
 
-        lottie_accueil = load_lottieurl('https://assets2.lottiefiles.com/packages/lf20_xRmNN8.json')
-        st_lottie(lottie_accueil, height=200)
+    lottie_accueil = load_lottieurl('https://assets2.lottiefiles.com/packages/lf20_xRmNN8.json')
+    st_lottie(lottie_accueil, height=200)
 #*******************************************
 
 ############# Classification #############
