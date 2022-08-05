@@ -59,18 +59,19 @@ def load_lottieurl(url: str):
         return None
     return r.json()
 
-PAGES = ["Accueil", "Prédiction"]
+PAGES = ["Accueil", "Description des données", "Prédiction","Meilleur modèle"]
 
 with st.sidebar:
     st_lottie(load_lottieurl('https://assets8.lottiefiles.com/packages/lf20_jjojhxyb.json'), height=150)
 choix_page = st.sidebar.radio(label="", options=PAGES)
 
+#
 
 
-st.image("images/magiline.png",use_column_width=None)
 
 ############# Page 1 #############
 if choix_page == "Accueil":
+    st.image("images/magiline.png",use_column_width=None)
    # st.write("---")
     st.write("##")
 
@@ -119,23 +120,30 @@ if choix_page == "Accueil":
 
 elif choix_page == "Prédiction":
     PAGES_Prédiction = ["RF", "RL", "SVM"]
-    st.sidebar.title('Classifications  :brain:')
+    st.sidebar.title('Choisissez un modèle  ')
     st.sidebar.radio(label="", options=PAGES_Prédiction, key="choix_page_classification")
 
+           
+
     if st.session_state.choix_page_classification == "RF":
-        st.write("""# Random Forest""")
+        st.write("""# Modèle Random Forest""")
         st.write("##")
         exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
         with exp2:
-            with st.expander("Principe de l'algorithme RF"):
+            with st.expander("Principe de l'algorithme des forêts aléatoires :"):
                 st.write("""
-                * 1ère étape : Choix du nombre de voisins k
-                * 2ème étape : Calcul de la distance entre le point non classifié et tous les autre
-                * 3ème étape : Sélection des k plus proches voisins
-                * 4ème étape : On compte le nombre de voisins dans chaque classe
-                * 5ème étape : Attribution de la classe la plus présente à notre point 
+                * 1ère étape : Sélectionner K points de données aléatoires dans l'ensemble d'apprentissage.
+                * 2ème étape : Construire les arbres de décision associés aux points de données sélectionnés (sous-ensembles).
+                * 3ème étape : Choisir le nombre N pour les arbres de décision à créer
+                * 4ème étape : Répéter les étapes 1 et 2
+                * 5ème étape : Pour les nouveaux points de données, rechercher les prédictions de chaque arbre de décision 
+                    et attribuer les nouvea
+                    ux points de données à la catégorie qui remporte la majorité des votes.
                 """)
+                st.write("##")
+                st.image("images/rf.jpg",use_column_width=None)
 
+            
         st.sidebar.header('User Input Parameters')
 
         def user_input_features():
@@ -176,18 +184,16 @@ elif choix_page == "Prédiction":
         st.write(prediction_proba)
 
     elif st.session_state.choix_page_classification == "SVM":
-        st.write("""# Support Vector Machine""")
+        st.write("""# Modèle Support Vector Machine""")
         st.write("##")
         exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
         with exp2:
             with st.expander("Principe de l'algorithme SVM"):
                 st.write("""
-                * 1ère étape : Choix du nombre de voisins k
-                * 2ème étape : Calcul de la distance entre le point non classifié et tous les autre
-                * 3ème étape : Sélection des k plus proches voisins
-                * 4ème étape : On compte le nombre de voisins dans chaque classe
-                * 5ème étape : Attribution de la classe la plus présente à notre point 
+                * Le principe des SVM consiste à ramener un problème de classification ou de discrimination à un hyperplan (feature space) dans lequel les données sont séparées en plusieurs classes dont la frontière est la plus éloignée possible des points de données (ou "marge maximale") 
                 """)
+                st.write("##")
+                st.image("images/svm.png",use_column_width=None)
 
         st.sidebar.header('User Input Parameters')
 
@@ -227,6 +233,58 @@ elif choix_page == "Prédiction":
 
         st.subheader('Prediction Probability')
         st.write(prediction_proba)
+
+    elif st.session_state.choix_page_classification == "RL":
+        st.write("""# Modèle Régression logistique""")
+        st.write("##")
+        exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
+        with exp2:
+            with st.expander("Principe de l'algorithme RL"):
+                st.write("""
+                * La régression logistique est un type d'apprentissage automatique supervisé utilisé pour prédire la probabilité d'une variable cible. Il est utilisé pour estimer la relation entre une variable dépendante (cible) et une ou plusieurs variables indépendantes. La sortie de la variable dépendante est représentée en valeurs discrètes telles que 0 et 1.
+                """)
+                st.write("##")
+                st.image("images/rl.png",use_column_width=None)
+
+        st.sidebar.header('User Input Parameters')
+
+        def user_input_features():
+            sepal_length = st.sidebar.slider('Sepal length', 4.3, 7.9, 5.4)
+            sepal_width = st.sidebar.slider('Sepal width', 2.0, 4.4, 3.4)
+            petal_length = st.sidebar.slider('Petal length', 1.0, 6.9, 1.3)
+            petal_width = st.sidebar.slider('Petal width', 0.1, 2.5, 0.2)
+            data = {'sepal_length': sepal_length,
+                    'sepal_width': sepal_width,
+                    'petal_length': petal_length,
+                    'petal_width': petal_width}
+            features = pd.DataFrame(data, index=[0])
+            return features   
+
+        df = user_input_features()
+
+        st.subheader('User Input parameters')
+        st.write(df)
+
+        iris = datasets.load_iris()
+        X = iris.data
+        Y = iris.target
+
+        clf = RandomForestClassifier()
+        clf.fit(X, Y)
+
+        prediction = clf.predict(df)
+        prediction_proba = clf.predict_proba(df)
+
+        st.subheader('Class labels and their corresponding index number')
+        st.write(iris.target_names)
+
+        st.subheader('Prediction')
+        st.write(iris.target_names[prediction])
+        #st.write(prediction)
+
+        st.subheader('Prediction Probability')
+        st.write(prediction_proba)
+
 
 
    
