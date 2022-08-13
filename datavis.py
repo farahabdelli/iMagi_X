@@ -7,7 +7,7 @@ import requests
 
 
 ####### html/css config ########
-st.set_page_config(layout="wide", page_title="No code AI", menu_items={
+st.set_page_config(layout="wide", page_title="Magiline data prediction", menu_items={
     'About': "No-code AI Platform - réalisé par Antonin"
 })
 
@@ -112,21 +112,72 @@ if choix_page == "Accueil":
 
     lottie_accueil = load_lottieurl('https://assets2.lottiefiles.com/packages/lf20_xRmNN8.json')
     st_lottie(lottie_accueil, height=200)
-#*******************************************
+#******************Description*************************
+
+elif choix_page == "Description des données":
+
+    st.markdown('<p class="grand_titre">Chargement du dataset</p>', unsafe_allow_html=True)
+    st.write('##')
+    col1_1, b_1, col2_1 = st.columns((1, 0.1, 1))
+    col1, b, col2 = st.columns((1.3, 0.2, 1.4))
+    with col2_1:
+        st_lottie(load_lottieurl('https://assets9.lottiefiles.com/packages/lf20_zidar9jm.json'), height=200)
+    with col1_1:
+        dataset_choix = st.selectbox("Dataset",
+                                     ["-- Choisissez une option --", "Evènements","Mesures de température","Dataset final (Features)",
+                                      "Descriptifs (Label)"], )
+        message_ = st.empty()
+
+    if 'choix_dataset' in st.session_state:
+        with col1_1:
+            message_.success(st.session_state.choix_dataset)
+
+
+
+
+    noms_fichiers =  ["Evènements","Mesures de température","Dataset final (Features)", "Descriptifs (Label)"]
+    path_fichiers = ['data/all_data.csv','data/temp_data.csv','data/all_features.csv', 'data/descriptif_hiver_ete.csv']
+
+    for i, j in zip(noms_fichiers, path_fichiers):
+        if dataset_choix == i:
+            st.session_state.data = pd.read_csv(j,sep=";")
+            st.session_state.choix_dataset = "Le fichier chargé est le dataset " + i
+            with col1_1:
+                message_.success(st.session_state.choix_dataset)
+
+            with col1:
+                st.write("##")
+                st.markdown('<p class="section">Aperçu</p>', unsafe_allow_html=True)
+                st.write(st.session_state.data.head(50))
+                st.write("##")
+
+            with col2:
+                st.write("##")
+                st.markdown('<p class="section">Caractéristiques</p>', unsafe_allow_html=True)
+                st.write(' - Taille:', st.session_state.data.shape)
+                st.write(' - Nombre de valeurs:', st.session_state.data.shape[0] * st.session_state.data.shape[1])
+                st.write(' - Pourcentage de valeurs manquantes:', round(
+                    sum(pd.DataFrame(st.session_state.data).isna().sum(axis=1).tolist()) * 100 / (
+                            st.session_state.data.shape[0] * st.session_state.data.shape[1]), 2),
+                         '%')
+
+
+
+
 
 ############# Classification #############
 
 
 
 elif choix_page == "Prédiction":
-    PAGES_Prédiction = ["RF", "RL", "SVM"]
+    PAGES_Prédiction = ["RF", "RL", "Decision Tree"]
     st.sidebar.title('Choisissez un modèle  ')
     st.sidebar.radio(label="", options=PAGES_Prédiction, key="choix_page_classification")
 
            
 
     if st.session_state.choix_page_classification == "RF":
-        st.write("""# Modèle Random Forest""")
+        st.write("""# Modèle des forêts aléatoires """)
         st.write("##")
         exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
         with exp2:
@@ -183,12 +234,12 @@ elif choix_page == "Prédiction":
         st.subheader('Prediction Probability')
         st.write(prediction_proba)
 
-    elif st.session_state.choix_page_classification == "SVM":
-        st.write("""# Modèle Support Vector Machine""")
+    elif st.session_state.choix_page_classification == "Decision Tree":
+        st.write("""# Modèle des arbres de décision""")
         st.write("##")
         exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
         with exp2:
-            with st.expander("Principe de l'algorithme SVM"):
+            with st.expander("Principe de l'algorithme decision tree"):
                 st.write("""
                 * Le principe des SVM consiste à ramener un problème de classification ou de discrimination à un hyperplan (feature space) dans lequel les données sont séparées en plusieurs classes dont la frontière est la plus éloignée possible des points de données (ou "marge maximale") 
                 """)
@@ -235,7 +286,7 @@ elif choix_page == "Prédiction":
         st.write(prediction_proba)
 
     elif st.session_state.choix_page_classification == "RL":
-        st.write("""# Modèle Régression logistique""")
+        st.write("""# Modèle de la régression logistique""")
         st.write("##")
         exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
         with exp2:
