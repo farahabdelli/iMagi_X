@@ -3,7 +3,7 @@ import requests
 import plotly.express as px
 import os
 import joblib
-
+import plotly as plt
 import streamlit as st
 from streamlit_lottie import st_lottie
 
@@ -13,6 +13,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+from sklearn.metrics import plot_confusion_matrix, plot_roc_curve, plot_precision_recall_curve
 
 #from prediction import train_test
 
@@ -24,6 +25,22 @@ def train_test(df):
     
     return train, test
 
+
+class_names = ['Absent', 'Présent']
+def plot_metrics(metrics_list):
+    if 'Confusion Matrix' in metrics_list:
+
+        st.subheader("Confusion Matrix")
+        plot_confusion_matrix(model, x_test, y_test, display_labels=class_names)
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        st.pyplot()
+
+    if 'ROC Curve' in metrics_list:
+        st.subheader("ROC Curve")
+        plot_roc_curve(model, x_test, y_test)
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        st.pyplot()
+    
 
 #paths
 ABS_DATAPATH = os.path.abspath('data/')
@@ -90,6 +107,8 @@ def load_lottieurl(url: str):
     if r.status_code != 200:
         return None
     return r.json()
+
+#side bar 
 
 PAGES = ["Accueil", "Description des données", "Prédiction","Meilleur modèle"]
 
@@ -202,13 +221,17 @@ elif choix_page == "Description des données":
 
 
 elif choix_page == "Prédiction":
-    PAGES_Prédiction = ["RF", "RL", "Decision Tree"]
+    PAGES_Prédiction = ["RL", "RF", "Decision Tree"]
+    st.write("##")
     st.sidebar.title('Choisissez un modèle  ')
     st.sidebar.radio(label="", options=PAGES_Prédiction, key="choix_page_classification")
 
            
 
     if st.session_state.choix_page_classification == "RF":
+        st.sidebar.title("Choisissez une métrique d'évaluation ")
+        metrics = st.sidebar.multiselect("", ('Confusion Matrix', 'ROC Curve'))
+
         st.write("""# Modèle des forêts aléatoires """)
         st.write("##")
         exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
@@ -227,6 +250,144 @@ elif choix_page == "Prédiction":
                 st.image("images/rf.jpg",use_column_width=None)
 
         # load model 
+        model = joblib.load(os.path.join(Saved_model_DATAPATH, RF))
+
+        #train test data
+        x_train, x_test = train_test(data_model.iloc[:,1:])
+        train_target,test_target = train_test(target)
+        y_test = test_target['baignade']
+        y_train = train_target['baignade']
+        # predict
+        y_pred_train = model.predict(x_train)
+        y_pred_test = model.predict(x_test)
+
+        # metrics on train
+        accur_train = accuracy_score(y_train, y_pred_train)
+        precis_train = precision_score(y_train, y_pred_train, average='micro')
+        rappel_train = recall_score(y_train, y_pred_train, average='micro')
+        F1_train = f1_score(y_train, y_pred_train, average='micro')
+
+        # metrics on test
+        accur_test = accuracy_score(y_test, y_pred_test)
+        precis_test = precision_score(y_test, y_pred_test, average='micro')
+        rappel_test = recall_score(y_test, y_pred_test, average='micro')
+        F1_test = f1_score(y_test, y_pred_test, average='micro')
+        _, col1_dt, _ = st.columns((0.1, 1, 0.1))
+        _, col1_eval_modele, col2_eval_modele, col3_eval_modele, col4_eval_modele, _ = st.columns((0.3, 0.5, 0.5, 0.5, 0.5, 0.1))
+        # Affichage métriques
+
+
+
+
+        if st.sidebar.button("Voir les résultats", key='Voir les résultats'):
+            
+
+            with col1_dt:
+                st.subheader('Évaluation par rapport au train set')
+                st.write("##")
+                
+                st.write("##")
+
+                st.write("##")
+            with col1_eval_modele:
+                st.metric(label="Precision", value=round(precis_test, 3),
+                            delta=round(precis_test - precis_train, 3))
+            with col2_eval_modele:
+                st.metric(label="Recall", value=round(rappel_test, 3),
+                            delta=round(rappel_test - rappel_train, 3))
+            with col3_eval_modele:
+                st.metric(label="F1 score", value=round(F1_test, 3),
+                            delta=round(F1_test - F1_train, 3))
+            with col4_eval_modele:
+                st.metric(label="Accuracy", value=round(accur_test, 3),
+                            delta=round(accur_test - accur_train, 3))  
+                            
+            
+            plot_metrics(metrics)
+
+    elif st.session_state.choix_page_classification == "Decision Tree":
+        st.sidebar.title("Choisissez une métrique d'évaluation ")
+        metrics = st.sidebar.multiselect("", ('Confusion Matrix', 'ROC Curve'))
+        st.write("##")       
+        st.write("""# Modèle des arbres de décision""")
+        st.write("##")
+        exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
+        with exp2:
+            with st.expander("Principe de l'algorithme decision tree"):
+                st.write("""
+                * Le principe des SVM consiste à ramener un problème de classification ou de discrimination à un hyperplan (feature space) dans lequel les données sont séparées en plusieurs classes dont la frontière est la plus éloignée possible des points de données (ou "marge maximale") 
+                """)
+                st.write("##")
+                st.image("images/svm.png",use_column_width=None)
+      # load model 
+        model = joblib.load(os.path.join(Saved_model_DATAPATH, Dtree))
+
+        #train test data
+        x_train, x_test = train_test(data_model.iloc[:,1:])
+        train_target,test_target = train_test(target)
+        y_test = test_target['baignade']
+        y_train = train_target['baignade']
+        # predict
+        y_pred_train = model.predict(x_train)
+        y_pred_test = model.predict(x_test)
+
+        # metrics on train
+        accur_train = accuracy_score(y_train, y_pred_train)
+        precis_train = precision_score(y_train, y_pred_train, average='micro')
+        rappel_train = recall_score(y_train, y_pred_train, average='micro')
+        F1_train = f1_score(y_train, y_pred_train, average='micro')
+
+        # metrics on test
+        accur_test = accuracy_score(y_test, y_pred_test)
+        precis_test = precision_score(y_test, y_pred_test, average='micro')
+        rappel_test = recall_score(y_test, y_pred_test, average='micro')
+        F1_test = f1_score(y_test, y_pred_test, average='micro')
+        _, col1_dt, _ = st.columns((0.1, 1, 0.1))
+        _, col1_eval_modele, col2_eval_modele, col3_eval_modele, col4_eval_modele, _ = st.columns((0.3, 0.5, 0.5, 0.5, 0.5, 0.1))
+        # Affichage métriques
+
+        if st.sidebar.button("Voir les résultats", key='Voir les résultats'):
+            
+
+            with col1_dt:
+                st.subheader('Évaluation par rapport au train set')
+                st.write("##")
+                
+                st.write("##")
+
+                st.write("##")
+            with col1_eval_modele:
+                st.metric(label="Precision", value=round(precis_test, 3),
+                            delta=round(precis_test - precis_train, 3))
+            with col2_eval_modele:
+                st.metric(label="Recall", value=round(rappel_test, 3),
+                            delta=round(rappel_test - rappel_train, 3))
+            with col3_eval_modele:
+                st.metric(label="F1 score", value=round(F1_test, 3),
+                            delta=round(F1_test - F1_train, 3))
+            with col4_eval_modele:
+                st.metric(label="Accuracy", value=round(accur_test, 3),
+                            delta=round(accur_test - accur_train, 3))  
+                            
+            
+            plot_metrics(metrics)
+
+    elif st.session_state.choix_page_classification == "RL":
+        st.sidebar.title("Choisissez une métrique d'évaluation ")
+        metrics = st.sidebar.multiselect("", ('Confusion Matrix', 'ROC Curve'))
+        st.write("##")        
+        st.write("""# Modèle de la régression logistique""")
+        st.write("##")
+        exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
+        with exp2:
+            with st.expander("Principe de l'algorithme RL"):
+                st.write("""
+                * La régression logistique est un type d'apprentissage automatique supervisé utilisé pour prédire la probabilité d'une variable cible. Il est utilisé pour estimer la relation entre une variable dépendante (cible) et une ou plusieurs variables indépendantes. La sortie de la variable dépendante est représentée en valeurs discrètes telles que 0 et 1.
+                """)
+                st.write("##")
+                st.image("images/rl.png",use_column_width=None)   
+
+      # load model 
         model = joblib.load(os.path.join(Saved_model_DATAPATH, RLOGIST))
 
         #train test data
@@ -252,57 +413,33 @@ elif choix_page == "Prédiction":
         _, col1_dt, _ = st.columns((0.1, 1, 0.1))
         _, col1_eval_modele, col2_eval_modele, col3_eval_modele, col4_eval_modele, _ = st.columns((0.3, 0.5, 0.5, 0.5, 0.5, 0.1))
         # Affichage métriques
-        with col1_dt:
-            st.write("##")
-            st.markdown(
-                '<p class="section">Évaluation par rapport au train set</p>',
-                unsafe_allow_html=True)
-            st.write("##")
-        with col1_eval_modele:
-            st.metric(label="Precision", value=round(precis_test, 3),
-                        delta=round(precis_test - precis_train, 3))
-        with col2_eval_modele:
-            st.metric(label="Recall", value=round(rappel_test, 3),
-                        delta=round(rappel_test - rappel_train, 3))
-        with col3_eval_modele:
-            st.metric(label="F1 score", value=round(F1_test, 3),
-                        delta=round(F1_test - F1_train, 3))
-        with col4_eval_modele:
-            st.metric(label="Accuracy", value=round(accur_test, 3),
-                        delta=round(accur_test - accur_train, 3))  
 
-        st.subheader('Résultats')
+        if st.sidebar.button("Voir les résultats", key='Voir les résultats'):
+            
 
-    elif st.session_state.choix_page_classification == "Decision Tree":
-        st.write("""# Modèle des arbres de décision""")
-        st.write("##")
-        exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
-        with exp2:
-            with st.expander("Principe de l'algorithme decision tree"):
-                st.write("""
-                * Le principe des SVM consiste à ramener un problème de classification ou de discrimination à un hyperplan (feature space) dans lequel les données sont séparées en plusieurs classes dont la frontière est la plus éloignée possible des points de données (ou "marge maximale") 
-                """)
+            with col1_dt:
+                st.subheader('Évaluation par rapport au train set')
                 st.write("##")
-                st.image("images/svm.png",use_column_width=None)
-
-        st.sidebar.header('User Input Parameters')
-
-       # st.subheader('User Input parameters')
-      #  st.write(df)
-
-    elif st.session_state.choix_page_classification == "RL":
-        st.write("""# Modèle de la régression logistique""")
-        st.write("##")
-        exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
-        with exp2:
-            with st.expander("Principe de l'algorithme RL"):
-                st.write("""
-                * La régression logistique est un type d'apprentissage automatique supervisé utilisé pour prédire la probabilité d'une variable cible. Il est utilisé pour estimer la relation entre une variable dépendante (cible) et une ou plusieurs variables indépendantes. La sortie de la variable dépendante est représentée en valeurs discrètes telles que 0 et 1.
-                """)
+                
                 st.write("##")
-                st.image("images/rl.png",use_column_width=None)   
 
-
+                st.write("##")
+            with col1_eval_modele:
+                st.metric(label="Precision", value=round(precis_test, 3),
+                            delta=round(precis_test - precis_train, 3))
+            with col2_eval_modele:
+                st.metric(label="Recall", value=round(rappel_test, 3),
+                            delta=round(rappel_test - rappel_train, 3))
+            with col3_eval_modele:
+                st.metric(label="F1 score", value=round(F1_test, 3),
+                            delta=round(F1_test - F1_train, 3))
+            with col4_eval_modele:
+                st.metric(label="Accuracy", value=round(accur_test, 3),
+                            delta=round(accur_test - accur_train, 3))  
+                            
+            st.write("##")  
+            st.write("##")  
+            plot_metrics(metrics)
 
    
 ############# Fin Classification #############
