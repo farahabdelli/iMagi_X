@@ -1,14 +1,46 @@
-import streamlit as st
 import pandas as pd
-from sklearn import datasets
-from sklearn.ensemble import RandomForestClassifier
-from streamlit_lottie import st_lottie
 import requests
+import plotly.express as px
+import os
+import joblib
 
+import streamlit as st
+from streamlit_lottie import st_lottie
+
+
+from sklearn import datasets
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
+
+#from prediction import train_test
+
+def train_test(df):
+
+    
+    train = df.iloc[60000:108952]
+    test =  df.iloc[110953:]
+    
+    return train, test
+
+
+#paths
+ABS_DATAPATH = os.path.abspath('data/')
+Saved_model_DATAPATH = os.path.abspath('saved_models/')
+PREP_DATA = 'all_features.csv' 
+LABEL_DATA = 'descriptif_hiver_ete.csv' 
+RLOGIST = 'reg_logist2.joblib'
+RF = 'random_forest.joblib'
+Dtree = 'decision_tree.joblib'
+
+# load data
+data_model = pd.read_csv(os.path.join(ABS_DATAPATH, PREP_DATA), sep=';')
+target = pd.read_csv(os.path.join(ABS_DATAPATH, LABEL_DATA), sep=';') 
 
 ####### html/css config ########
 st.set_page_config(layout="wide", page_title="Magiline data prediction", menu_items={
-    'About': "No-code AI Platform - réalisé par Antonin"
+    'About': "Magiline data prediction - réalisé par Farah"
 })
 
 st.markdown("""
@@ -194,45 +226,52 @@ elif choix_page == "Prédiction":
                 st.write("##")
                 st.image("images/rf.jpg",use_column_width=None)
 
-            
-        st.sidebar.header('User Input Parameters')
+        # load model 
+        model = joblib.load(os.path.join(Saved_model_DATAPATH, RLOGIST))
 
-        def user_input_features():
-            sepal_length = st.sidebar.slider('Sepal length', 4.3, 7.9, 5.4)
-            sepal_width = st.sidebar.slider('Sepal width', 2.0, 4.4, 3.4)
-            petal_length = st.sidebar.slider('Petal length', 1.0, 6.9, 1.3)
-            petal_width = st.sidebar.slider('Petal width', 0.1, 2.5, 0.2)
-            data = {'sepal_length': sepal_length,
-                    'sepal_width': sepal_width,
-                    'petal_length': petal_length,
-                    'petal_width': petal_width}
-            features = pd.DataFrame(data, index=[0])
-            return features   
+        #train test data
+        x_train, x_test = train_test(data_model.iloc[:,1:])
+        train_target,test_target = train_test(target)
+        y_test = test_target['baignade']
+        y_train = train_target['baignade']
+        # predict
+        y_pred_train = model.predict(x_train)
+        y_pred_test = model.predict(x_test)
 
-        df = user_input_features()
+        # metrics on train
+        accur_train = accuracy_score(y_train, y_pred_train)
+        precis_train = precision_score(y_train, y_pred_train, average='micro')
+        rappel_train = recall_score(y_train, y_pred_train, average='micro')
+        F1_train = f1_score(y_train, y_pred_train, average='micro')
 
-        st.subheader('User Input parameters')
-        st.write(df)
+        # metrics on test
+        accur_test = accuracy_score(y_test, y_pred_test)
+        precis_test = precision_score(y_test, y_pred_test, average='micro')
+        rappel_test = recall_score(y_test, y_pred_test, average='micro')
+        F1_test = f1_score(y_test, y_pred_test, average='micro')
+        _, col1_dt, _ = st.columns((0.1, 1, 0.1))
+        _, col1_eval_modele, col2_eval_modele, col3_eval_modele, col4_eval_modele, _ = st.columns((0.3, 0.5, 0.5, 0.5, 0.5, 0.1))
+        # Affichage métriques
+        with col1_dt:
+            st.write("##")
+            st.markdown(
+                '<p class="section">Évaluation par rapport au train set</p>',
+                unsafe_allow_html=True)
+            st.write("##")
+        with col1_eval_modele:
+            st.metric(label="Precision", value=round(precis_test, 3),
+                        delta=round(precis_test - precis_train, 3))
+        with col2_eval_modele:
+            st.metric(label="Recall", value=round(rappel_test, 3),
+                        delta=round(rappel_test - rappel_train, 3))
+        with col3_eval_modele:
+            st.metric(label="F1 score", value=round(F1_test, 3),
+                        delta=round(F1_test - F1_train, 3))
+        with col4_eval_modele:
+            st.metric(label="Accuracy", value=round(accur_test, 3),
+                        delta=round(accur_test - accur_train, 3))  
 
-        iris = datasets.load_iris()
-        X = iris.data
-        Y = iris.target
-
-        clf = RandomForestClassifier()
-        clf.fit(X, Y)
-
-        prediction = clf.predict(df)
-        prediction_proba = clf.predict_proba(df)
-
-        st.subheader('Class labels and their corresponding index number')
-        st.write(iris.target_names)
-
-        st.subheader('Prediction')
-        st.write(iris.target_names[prediction])
-        #st.write(prediction)
-
-        st.subheader('Prediction Probability')
-        st.write(prediction_proba)
+        st.subheader('Résultats')
 
     elif st.session_state.choix_page_classification == "Decision Tree":
         st.write("""# Modèle des arbres de décision""")
@@ -248,42 +287,8 @@ elif choix_page == "Prédiction":
 
         st.sidebar.header('User Input Parameters')
 
-        def user_input_features():
-            sepal_length = st.sidebar.slider('Sepal length', 4.3, 7.9, 5.4)
-            sepal_width = st.sidebar.slider('Sepal width', 2.0, 4.4, 3.4)
-            petal_length = st.sidebar.slider('Petal length', 1.0, 6.9, 1.3)
-            petal_width = st.sidebar.slider('Petal width', 0.1, 2.5, 0.2)
-            data = {'sepal_length': sepal_length,
-                    'sepal_width': sepal_width,
-                    'petal_length': petal_length,
-                    'petal_width': petal_width}
-            features = pd.DataFrame(data, index=[0])
-            return features   
-
-        df = user_input_features()
-
-        st.subheader('User Input parameters')
-        st.write(df)
-
-        iris = datasets.load_iris()
-        X = iris.data
-        Y = iris.target
-
-        clf = RandomForestClassifier()
-        clf.fit(X, Y)
-
-        prediction = clf.predict(df)
-        prediction_proba = clf.predict_proba(df)
-
-        st.subheader('Class labels and their corresponding index number')
-        st.write(iris.target_names)
-
-        st.subheader('Prediction')
-        st.write(iris.target_names[prediction])
-        #st.write(prediction)
-
-        st.subheader('Prediction Probability')
-        st.write(prediction_proba)
+       # st.subheader('User Input parameters')
+      #  st.write(df)
 
     elif st.session_state.choix_page_classification == "RL":
         st.write("""# Modèle de la régression logistique""")
@@ -295,46 +300,7 @@ elif choix_page == "Prédiction":
                 * La régression logistique est un type d'apprentissage automatique supervisé utilisé pour prédire la probabilité d'une variable cible. Il est utilisé pour estimer la relation entre une variable dépendante (cible) et une ou plusieurs variables indépendantes. La sortie de la variable dépendante est représentée en valeurs discrètes telles que 0 et 1.
                 """)
                 st.write("##")
-                st.image("images/rl.png",use_column_width=None)
-
-        st.sidebar.header('User Input Parameters')
-
-        def user_input_features():
-            sepal_length = st.sidebar.slider('Sepal length', 4.3, 7.9, 5.4)
-            sepal_width = st.sidebar.slider('Sepal width', 2.0, 4.4, 3.4)
-            petal_length = st.sidebar.slider('Petal length', 1.0, 6.9, 1.3)
-            petal_width = st.sidebar.slider('Petal width', 0.1, 2.5, 0.2)
-            data = {'sepal_length': sepal_length,
-                    'sepal_width': sepal_width,
-                    'petal_length': petal_length,
-                    'petal_width': petal_width}
-            features = pd.DataFrame(data, index=[0])
-            return features   
-
-        df = user_input_features()
-
-        st.subheader('User Input parameters')
-        st.write(df)
-
-        iris = datasets.load_iris()
-        X = iris.data
-        Y = iris.target
-
-        clf = RandomForestClassifier()
-        clf.fit(X, Y)
-
-        prediction = clf.predict(df)
-        prediction_proba = clf.predict_proba(df)
-
-        st.subheader('Class labels and their corresponding index number')
-        st.write(iris.target_names)
-
-        st.subheader('Prediction')
-        st.write(iris.target_names[prediction])
-        #st.write(prediction)
-
-        st.subheader('Prediction Probability')
-        st.write(prediction_proba)
+                st.image("images/rl.png",use_column_width=None)   
 
 
 
