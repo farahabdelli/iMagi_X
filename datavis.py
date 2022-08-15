@@ -4,11 +4,13 @@ import plotly.express as px
 import os
 import joblib
 import plotly as plt
+import matplotlib.pyplot as pyplt
 import streamlit as st
 from streamlit_lottie import st_lottie
+from PIL import Image
 
+import seaborn as sns
 
-from sklearn import datasets
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
@@ -20,23 +22,35 @@ from sklearn.metrics import plot_confusion_matrix, plot_roc_curve, plot_precisio
 def train_test(df):
 
     
-    train = df.iloc[60000:108952]
-    test =  df.iloc[110953:]
+    train = df.iloc[70000:]
+    test =  df.iloc[106952:]
     
     return train, test
 
 
-class_names = ['Absent', 'Présent']
+class_names = ['Absence', 'Présence']
+
 def plot_metrics(metrics_list):
     if 'Confusion Matrix' in metrics_list:
-
-        st.subheader("Confusion Matrix")
+        st.write('##')
+        st.write('##')
+        st.write('##')
+        st.subheader(" Matrice de confusion")
+        st.write('##')
+        st.write('##')
+        st.write('##')
         plot_confusion_matrix(model, x_test, y_test, display_labels=class_names)
         st.set_option('deprecation.showPyplotGlobalUse', False)
         st.pyplot()
 
     if 'ROC Curve' in metrics_list:
+        st.write('##')
+        st.write('##')
+        st.write('##')
         st.subheader("ROC Curve")
+        st.write('##')
+        st.write('##')
+        st.write('##')
         plot_roc_curve(model, x_test, y_test)
         st.set_option('deprecation.showPyplotGlobalUse', False)
         st.pyplot()
@@ -47,13 +61,15 @@ ABS_DATAPATH = os.path.abspath('data/')
 Saved_model_DATAPATH = os.path.abspath('saved_models/')
 PREP_DATA = 'all_features.csv' 
 LABEL_DATA = 'descriptif_hiver_ete.csv' 
+DESC_DATA = 'descriptif.csv' 
 RLOGIST = 'reg_logist2.joblib'
-RF = 'random_forest.joblib'
-Dtree = 'decision_tree.joblib'
+RF = 'random_forest2.joblib'
+Dtree = 'decision_tree2.joblib'
 
 # load data
 data_model = pd.read_csv(os.path.join(ABS_DATAPATH, PREP_DATA), sep=';')
 target = pd.read_csv(os.path.join(ABS_DATAPATH, LABEL_DATA), sep=';') 
+target_ete = pd.read_csv(os.path.join(ABS_DATAPATH, DESC_DATA), sep=';') 
 
 ####### html/css config ########
 st.set_page_config(layout="wide", page_title="Magiline data prediction", menu_items={
@@ -113,7 +129,10 @@ def load_lottieurl(url: str):
 PAGES = ["Accueil", "Description des données", "Prédiction","Meilleur modèle"]
 
 with st.sidebar:
-    st_lottie(load_lottieurl('https://assets8.lottiefiles.com/packages/lf20_jjojhxyb.json'), height=150)
+    #st_lottie(load_lottieurl('https://assets8.lottiefiles.com/packages/lf20_jjojhxyb.json'), height=150)
+    image = Image.open('images/magi.png')
+
+    st.image(image,width=260)
 choix_page = st.sidebar.radio(label="", options=PAGES)
 
 #
@@ -170,7 +189,7 @@ elif choix_page == "Description des données":
     st.markdown('<p class="grand_titre">Chargement du dataset</p>', unsafe_allow_html=True)
     st.write('##')
     col1_1, b_1, col2_1 = st.columns((1, 0.1, 1))
-    col1, b, col2 = st.columns((1.3, 0.2, 1.4))
+    
     with col2_1:
         st_lottie(load_lottieurl('https://assets9.lottiefiles.com/packages/lf20_zidar9jm.json'), height=200)
     with col1_1:
@@ -187,33 +206,61 @@ elif choix_page == "Description des données":
 
 
     noms_fichiers =  ["Evènements","Mesures de température","Dataset final (Features)", "Descriptifs (Label)"]
-    path_fichiers = ['data/all_data.csv','data/temp_data.csv','data/all_features.csv', 'data/descriptif_hiver_ete.csv']
+    path_fichiers = ['data/all_data.csv','data/temp_data.csv','data/all_features.csv', 'data/descriptif.csv']
 
     for i, j in zip(noms_fichiers, path_fichiers):
         if dataset_choix == i:
-            st.session_state.data = pd.read_csv(j,sep=";")
-            st.session_state.choix_dataset = "Le fichier chargé est le dataset " + i
-            with col1_1:
-                message_.success(st.session_state.choix_dataset)
+            if i in  ["Evènements","Mesures de température", "Descriptifs (Label)"]:
+                col1, b, col2 = st.columns((1.2, 0.1, 1.4))
+                st.session_state.data = pd.read_csv(j,sep=";")
+                st.session_state.choix_dataset = "Le fichier chargé est le dataset " + i
+                with col1_1:
+                    message_.success(st.session_state.choix_dataset)
 
-            with col1:
-                st.write("##")
-                st.markdown('<p class="section">Aperçu</p>', unsafe_allow_html=True)
-                st.write(st.session_state.data.head(50))
-                st.write("##")
+                with col1:
+                    st.write("##")
+                    st.markdown('<p class="section">Aperçu</p>', unsafe_allow_html=True)
+                    st.dataframe(st.session_state.data.head(100),width=750)
+                    st.write("##")
 
-            with col2:
-                st.write("##")
-                st.markdown('<p class="section">Caractéristiques</p>', unsafe_allow_html=True)
-                st.write(' - Taille:', st.session_state.data.shape)
-                st.write(' - Nombre de valeurs:', st.session_state.data.shape[0] * st.session_state.data.shape[1])
-                st.write(' - Pourcentage de valeurs manquantes:', round(
-                    sum(pd.DataFrame(st.session_state.data).isna().sum(axis=1).tolist()) * 100 / (
-                            st.session_state.data.shape[0] * st.session_state.data.shape[1]), 2),
-                         '%')
+                with col2:
+                    st.write("##")
+                    st.markdown('<p class="section">Caractéristiques</p>', unsafe_allow_html=True)
+                    st.write(' - Taille:', st.session_state.data.shape)
+                    st.write(' - Nombre de valeurs:', st.session_state.data.shape[0] * st.session_state.data.shape[1])
+                    st.write(' - Pourcentage de valeurs manquantes:', round(
+                        sum(pd.DataFrame(st.session_state.data).isna().sum(axis=1).tolist()) * 100 / (
+                                st.session_state.data.shape[0] * st.session_state.data.shape[1]), 2),
+                            '%')
 
+                    fig = pyplt.figure(figsize=(10, 4))
+                    
+                    fig=px.histogram(st.session_state.data,x=st.session_state.data.columns[1],color=st.session_state.data.columns[1], width=800, height=400)
+                    st.plotly_chart(fig)
+            else :
+                col1, b, col2 = st.columns((1.5, 0.2, 1.4))
+                st.session_state.data = pd.read_csv(j,sep=";")
+                st.session_state.choix_dataset = "Le fichier chargé est le dataset " + i
+                with col1_1:
+                    message_.success(st.session_state.choix_dataset)
 
+                with col1:
+                    st.write("##")
+                    st.markdown('<p class="section">Aperçu</p>', unsafe_allow_html=True)
+                    st.write(st.session_state.data.head(100))
+                    st.write("##")
 
+                with col2:
+                    st.write("##")
+                    st.markdown('<p class="section">Caractéristiques</p>', unsafe_allow_html=True)
+                    st.write(' - Taille:', st.session_state.data.shape)
+                    st.write(' - Nombre de valeurs:', st.session_state.data.shape[0] * st.session_state.data.shape[1])
+                    st.write(' - Pourcentage de valeurs manquantes:', round(
+                        sum(pd.DataFrame(st.session_state.data).isna().sum(axis=1).tolist()) * 100 / (
+                                st.session_state.data.shape[0] * st.session_state.data.shape[1]), 2),
+                            '%')
+
+                
 
 
 ############# Classification #############
@@ -225,7 +272,7 @@ elif choix_page == "Prédiction":
     st.write("##")
     st.sidebar.title('Choisissez un modèle  ')
     st.sidebar.radio(label="", options=PAGES_Prédiction, key="choix_page_classification")
-
+    st.markdown('<p class="grand_titre">Les résultats de la prédiction</p>', unsafe_allow_html=True)
            
 
     if st.session_state.choix_page_classification == "RF":
@@ -248,6 +295,9 @@ elif choix_page == "Prédiction":
                 """)
                 st.write("##")
                 st.image("images/rf.jpg",use_column_width=None)
+        st.write("##")
+        st.write("##")
+         
 
         # load model 
         model = joblib.load(os.path.join(Saved_model_DATAPATH, RF))
@@ -269,10 +319,10 @@ elif choix_page == "Prédiction":
 
         # metrics on test
         accur_test = accuracy_score(y_test, y_pred_test)
-        precis_test = precision_score(y_test, y_pred_test, average='micro')
-        rappel_test = recall_score(y_test, y_pred_test, average='micro')
-        F1_test = f1_score(y_test, y_pred_test, average='micro')
-        _, col1_dt, _ = st.columns((0.1, 1, 0.1))
+        precis_test = precision_score(y_test, y_pred_test)
+        rappel_test = recall_score(y_test, y_pred_test)
+        F1_test = f1_score(y_test, y_pred_test)
+        _, col1_dt, _ = st.columns((0.5, 1, 0.1))
         _, col1_eval_modele, col2_eval_modele, col3_eval_modele, col4_eval_modele, _ = st.columns((0.3, 0.5, 0.5, 0.5, 0.5, 0.1))
         # Affichage métriques
 
@@ -283,11 +333,11 @@ elif choix_page == "Prédiction":
             
 
             with col1_dt:
+                st.write("##")
+                st.write("##")
                 st.subheader('Évaluation par rapport au train set')
                 st.write("##")
-                
                 st.write("##")
-
                 st.write("##")
             with col1_eval_modele:
                 st.metric(label="Precision", value=round(precis_test, 3),
@@ -319,6 +369,11 @@ elif choix_page == "Prédiction":
                 """)
                 st.write("##")
                 st.image("images/svm.png",use_column_width=None)
+
+        st.write("##")
+        st.write("##")
+
+
       # load model 
         model = joblib.load(os.path.join(Saved_model_DATAPATH, Dtree))
 
@@ -339,10 +394,10 @@ elif choix_page == "Prédiction":
 
         # metrics on test
         accur_test = accuracy_score(y_test, y_pred_test)
-        precis_test = precision_score(y_test, y_pred_test, average='micro')
-        rappel_test = recall_score(y_test, y_pred_test, average='micro')
-        F1_test = f1_score(y_test, y_pred_test, average='micro')
-        _, col1_dt, _ = st.columns((0.1, 1, 0.1))
+        precis_test = precision_score(y_test, y_pred_test)
+        rappel_test = recall_score(y_test, y_pred_test)
+        F1_test = f1_score(y_test, y_pred_test)
+        _, col1_dt, _ = st.columns((0.5, 1, 0.1))
         _, col1_eval_modele, col2_eval_modele, col3_eval_modele, col4_eval_modele, _ = st.columns((0.3, 0.5, 0.5, 0.5, 0.5, 0.1))
         # Affichage métriques
 
@@ -350,11 +405,13 @@ elif choix_page == "Prédiction":
             
 
             with col1_dt:
+
+                st.write("##")
+                st.write("##")
+                st.write("##")
                 st.subheader('Évaluation par rapport au train set')
                 st.write("##")
-                
                 st.write("##")
-
                 st.write("##")
             with col1_eval_modele:
                 st.metric(label="Precision", value=round(precis_test, 3),
@@ -385,7 +442,11 @@ elif choix_page == "Prédiction":
                 * La régression logistique est un type d'apprentissage automatique supervisé utilisé pour prédire la probabilité d'une variable cible. Il est utilisé pour estimer la relation entre une variable dépendante (cible) et une ou plusieurs variables indépendantes. La sortie de la variable dépendante est représentée en valeurs discrètes telles que 0 et 1.
                 """)
                 st.write("##")
-                st.image("images/rl.png",use_column_width=None)   
+                st.image("images/rl.png",use_column_width=None)  
+
+        
+        st.write("##")
+
 
       # load model 
         model = joblib.load(os.path.join(Saved_model_DATAPATH, RLOGIST))
@@ -395,6 +456,10 @@ elif choix_page == "Prédiction":
         train_target,test_target = train_test(target)
         y_test = test_target['baignade']
         y_train = train_target['baignade']
+
+        #scaler = StandardScaler()
+        #x_train.iloc[:,0:25] = scaler.fit_transform(x_train.iloc[:,0:25])
+        #x_test.iloc[:,0:25] = scaler.fit_transform(x_test.iloc[:,0:25])
         # predict
         y_pred_train = model.predict(x_train)
         y_pred_test = model.predict(x_test)
@@ -407,10 +472,10 @@ elif choix_page == "Prédiction":
 
         # metrics on test
         accur_test = accuracy_score(y_test, y_pred_test)
-        precis_test = precision_score(y_test, y_pred_test, average='micro')
-        rappel_test = recall_score(y_test, y_pred_test, average='micro')
-        F1_test = f1_score(y_test, y_pred_test, average='micro')
-        _, col1_dt, _ = st.columns((0.1, 1, 0.1))
+        precis_test = precision_score(y_test, y_pred_test)
+        rappel_test = recall_score(y_test, y_pred_test)
+        F1_test = f1_score(y_test, y_pred_test)
+        _, col1_dt, _ = st.columns((0.5, 1, 0.1))
         _, col1_eval_modele, col2_eval_modele, col3_eval_modele, col4_eval_modele, _ = st.columns((0.3, 0.5, 0.5, 0.5, 0.5, 0.1))
         # Affichage métriques
 
@@ -418,11 +483,13 @@ elif choix_page == "Prédiction":
             
 
             with col1_dt:
+
+                st.write("##")
+                st.write("##")
+                st.write("##")
                 st.subheader('Évaluation par rapport au train set')
                 st.write("##")
-                
                 st.write("##")
-
                 st.write("##")
             with col1_eval_modele:
                 st.metric(label="Precision", value=round(precis_test, 3),
@@ -444,7 +511,51 @@ elif choix_page == "Prédiction":
    
 ############# Fin Classification #############
 
+############# Best model #############
 
+
+
+elif choix_page == "Meilleur modèle":
+    st.markdown('<p class="grand_titre">Résultat du meilleur modèle</p>', unsafe_allow_html=True)
+    st.write("##")    
+    st.write("##")
+    st.write("##")
+    st.subheader('Évaluation du modèle sur les données de validation') 
+    # load model 
+    model = joblib.load(os.path.join(Saved_model_DATAPATH, RF))
+
+    #train test data
+    x_train, x_test = train_test(data_model.iloc[:,1:])
+    train_target,test_target = train_test(target)
+    y_test = test_target['baignade']
+    y_train = train_target['baignade']
+    # predict
+    y_pred_train = model.predict(x_train)
+    y_pred_test = model.predict(x_test)
+
+
+    # metrics on test
+    accur_test = accuracy_score(y_test, y_pred_test)
+    precis_test = precision_score(y_test, y_pred_test, average='micro')
+    rappel_test = recall_score(y_test, y_pred_test, average='micro')
+    F1_test = f1_score(y_test, y_pred_test, average='micro')
+    _, col1_dt, _ = st.columns((0.1, 1, 0.1))
+    _, col1_eval_modele, col2_eval_modele, col3_eval_modele, col4_eval_modele, _ = st.columns((0.3, 0.5, 0.5, 0.5, 0.5, 0.1))
+    # Affichage métriques
+
+
+     
+    with col1_eval_modele:
+        st.metric(label="Precision", value=round(precis_test, 3))
+    with col2_eval_modele:
+        st.metric(label="Recall", value=round(rappel_test, 3))
+    with col3_eval_modele:
+        st.metric(label="F1 score", value=round(F1_test, 3))
+    with col4_eval_modele:
+        st.metric(label="Accuracy", value=round(accur_test, 3))  
+                    
+    metrics = ['Confusion Matrix', 'ROC Curve']
+    plot_metrics(metrics)
 
 
 
