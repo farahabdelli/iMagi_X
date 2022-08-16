@@ -3,19 +3,16 @@ import requests
 import plotly.express as px
 import os
 import joblib
-import plotly as plt
 import matplotlib.pyplot as pyplt
 import streamlit as st
 from streamlit_lottie import st_lottie
 from PIL import Image
 
-import seaborn as sns
-
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
-from sklearn.metrics import plot_confusion_matrix, plot_roc_curve, plot_precision_recall_curve
+from sklearn.metrics import plot_confusion_matrix, plot_roc_curve
 
 #from prediction import train_test
 
@@ -220,7 +217,7 @@ elif choix_page == "Description des données":
                 with col1:
                     st.write("##")
                     st.markdown('<p class="section">Aperçu</p>', unsafe_allow_html=True)
-                    st.dataframe(st.session_state.data.head(100),width=750)
+                    st.table(st.session_state.data.head(50))
                     st.write("##")
 
                 with col2:
@@ -238,7 +235,7 @@ elif choix_page == "Description des données":
                     fig=px.histogram(st.session_state.data,x=st.session_state.data.columns[1],color=st.session_state.data.columns[1], width=800, height=400)
                     st.plotly_chart(fig)
             else :
-                col1, b, col2 = st.columns((1.5, 0.2, 1.4))
+                col1, b, col2 = st.columns((2.7, 0.2, 1.4))
                 st.session_state.data = pd.read_csv(j,sep=";")
                 st.session_state.choix_dataset = "Le fichier chargé est le dataset " + i
                 with col1_1:
@@ -247,7 +244,7 @@ elif choix_page == "Description des données":
                 with col1:
                     st.write("##")
                     st.markdown('<p class="section">Aperçu</p>', unsafe_allow_html=True)
-                    st.write(st.session_state.data.head(100))
+                    st.table(st.session_state.data.head(10))
                     st.write("##")
 
                 with col2:
