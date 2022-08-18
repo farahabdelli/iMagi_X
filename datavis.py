@@ -19,8 +19,8 @@ from sklearn.metrics import plot_confusion_matrix, plot_roc_curve
 def train_test(df):
 
     
-    train = df.iloc[70000:]
-    test =  df.iloc[106952:]
+    train = df.iloc[:1100,1:]
+    test =  df.iloc[1101:,1:]
     
     return train, test
 
@@ -56,12 +56,12 @@ def plot_metrics(metrics_list):
 #paths
 ABS_DATAPATH = os.path.abspath('data/')
 Saved_model_DATAPATH = os.path.abspath('saved_models/')
-PREP_DATA = 'all_features.csv' 
+PREP_DATA = 'features_res.csv' 
 LABEL_DATA = 'descriptif_hiver_ete.csv' 
 DESC_DATA = 'descriptif.csv' 
-RLOGIST = 'reg_logist2.joblib'
-RF = 'random_forest2.joblib'
-Dtree = 'decision_tree2.joblib'
+RLOGIST = 'reg_logist6.joblib'
+RF = 'random_forest7.joblib'
+Dtree = 'decision_tree4.joblib'
 
 # load data
 data_model = pd.read_csv(os.path.join(ABS_DATAPATH, PREP_DATA), sep=';')
@@ -144,7 +144,7 @@ if choix_page == "Accueil":
 
 
     st.write("""
-# Comment peut-on prédire l'usage d'une piscine Magiline grâce à la data ?
+# Comment peut-on prédire la présence dans une piscine Magiline ?
 """)
     st.write("##")
     st.markdown(
@@ -162,23 +162,26 @@ if choix_page == "Accueil":
     "<p class='intro'>Pour déployer ma solution, on sert des outils suivants :</p>",
     unsafe_allow_html=True)
     st.markdown(
-    "<p class='intro'>- Github : il stocke le code de l’application, le code de la modélisation, le modèle enregistré, les données et un fichier requirements.txt qui contient toutes les librairies dont l’application a besoin pour fonctionner </p>",
+    "<p class='intro'>- Github : il stocke le code de l’application, le code de la modélisation, les modèles enregistrés, les données et un fichier requirements.txt qui contient toutes les librairies dont l’application a besoin pour fonctionner. </p>",
     unsafe_allow_html=True)
     st.markdown(
     "<p class='intro'>- Streamlit Cloud : il construit et déploie l’application web à partir du code stocké sur Github et héberge la solution sur son serveur.</p>",
     unsafe_allow_html=True)
+    st.write("##")
 
-    st.markdown(
-    "<p class='intro'><b>Passez à la page suivante pour voir les résultats. Bonne lecture !</b></p>",
+    cola, b1, colb = st.columns((1, 1, 1))
+    st.write("##")
+    st.write("##")
+    with cola:
+        st.write("• Pour visiter le site officiel cliquez sur  [ce lien](https://www.piscines-magiline.fr)")
+
+        st.write("##")
+        st.markdown(
+    "<p class='intro'><b>Bonne lecture !</b></p>",
     unsafe_allow_html=True)
-
-
-    st.subheader("Pour visiter le site officiel :")
-
-    st.write("• [Le site](https://www.piscines-magiline.fr)")
-
-    lottie_accueil = load_lottieurl('https://assets2.lottiefiles.com/packages/lf20_xRmNN8.json')
-    st_lottie(lottie_accueil, height=200)
+    with b1:
+     lottie_accueil = load_lottieurl('https://assets2.lottiefiles.com/packages/lf20_xRmNN8.json')
+     st_lottie(lottie_accueil, height=200)
 #******************Description*************************
 
 elif choix_page == "Description des données":
@@ -191,7 +194,7 @@ elif choix_page == "Description des données":
         st_lottie(load_lottieurl('https://assets9.lottiefiles.com/packages/lf20_zidar9jm.json'), height=200)
     with col1_1:
         dataset_choix = st.selectbox("Dataset",
-                                     ["-- Choisissez une option --", "Evènements","Mesures de température","Dataset final (Features)",
+                                     ["-- Choisissez une option --", "Evènements","Mesures de température","Features",
                                       "Descriptifs (Label)"], )
         message_ = st.empty()
 
@@ -202,7 +205,7 @@ elif choix_page == "Description des données":
 
 
 
-    noms_fichiers =  ["Evènements","Mesures de température","Dataset final (Features)", "Descriptifs (Label)"]
+    noms_fichiers =  ["Evènements","Mesures de température","Features", "Descriptifs (Label)"]
     path_fichiers = ['data/all_data.csv','data/temp_data.csv','data/all_features.csv', 'data/descriptif.csv']
 
     for i, j in zip(noms_fichiers, path_fichiers):
@@ -269,14 +272,14 @@ elif choix_page == "Prédiction":
     st.write("##")
     st.sidebar.title('Choisissez un modèle  ')
     st.sidebar.radio(label="", options=PAGES_Prédiction, key="choix_page_classification")
-    st.markdown('<p class="grand_titre">Les résultats de la prédiction</p>', unsafe_allow_html=True)
+    st.markdown('<p class="grand_titre"> Les résultats de la prédiction</p>', unsafe_allow_html=True)
            
 
     if st.session_state.choix_page_classification == "RF":
         st.sidebar.title("Choisissez une métrique d'évaluation ")
         metrics = st.sidebar.multiselect("", ('Confusion Matrix', 'ROC Curve'))
-
-        st.write("""# Modèle des forêts aléatoires """)
+        st.write("##")
+        st.subheader(""" Modèle des forêts aléatoires """)
         st.write("##")
         exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
         with exp2:
@@ -300,10 +303,16 @@ elif choix_page == "Prédiction":
         model = joblib.load(os.path.join(Saved_model_DATAPATH, RF))
 
         #train test data
-        x_train, x_test = train_test(data_model.iloc[:,1:])
-        train_target,test_target = train_test(target)
-        y_test = test_target['baignade']
-        y_train = train_target['baignade']
+        train, test = train_test(data_model)
+
+        explicative_columns = [x for x in train.columns if x not in "baignade"]
+        y_train = train.baignade
+        y_train = pd.DataFrame(y_train,columns=["baignade"])
+        x_train = train[explicative_columns]
+
+        y_test = test.baignade
+        y_test = pd.DataFrame(y_test,columns=["baignade"])
+        x_test = test[explicative_columns]
         # predict
         y_pred_train = model.predict(x_train)
         y_pred_test = model.predict(x_test)
@@ -356,7 +365,7 @@ elif choix_page == "Prédiction":
         st.sidebar.title("Choisissez une métrique d'évaluation ")
         metrics = st.sidebar.multiselect("", ('Confusion Matrix', 'ROC Curve'))
         st.write("##")       
-        st.write("""# Modèle des arbres de décision""")
+        st.subheader(""" Modèle des arbres de décision""")
         st.write("##")
         exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
         with exp2:
@@ -375,10 +384,16 @@ elif choix_page == "Prédiction":
         model = joblib.load(os.path.join(Saved_model_DATAPATH, Dtree))
 
         #train test data
-        x_train, x_test = train_test(data_model.iloc[:,1:])
-        train_target,test_target = train_test(target)
-        y_test = test_target['baignade']
-        y_train = train_target['baignade']
+        train, test = train_test(data_model)
+
+        explicative_columns = [x for x in train.columns if x not in "baignade"]
+        y_train = train.baignade
+        y_train = pd.DataFrame(y_train,columns=["baignade"])
+        x_train = train[explicative_columns]
+
+        y_test = test.baignade
+        y_test = pd.DataFrame(y_test,columns=["baignade"])
+        x_test = test[explicative_columns]
         # predict
         y_pred_train = model.predict(x_train)
         y_pred_test = model.predict(x_test)
@@ -430,7 +445,7 @@ elif choix_page == "Prédiction":
         st.sidebar.title("Choisissez une métrique d'évaluation ")
         metrics = st.sidebar.multiselect("", ('Confusion Matrix', 'ROC Curve'))
         st.write("##")        
-        st.write("""# Modèle de la régression logistique""")
+        st.subheader(""" Modèle de la régression logistique""")
         st.write("##")
         exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
         with exp2:
@@ -449,14 +464,18 @@ elif choix_page == "Prédiction":
         model = joblib.load(os.path.join(Saved_model_DATAPATH, RLOGIST))
 
         #train test data
-        x_train, x_test = train_test(data_model.iloc[:,1:])
-        train_target,test_target = train_test(target)
-        y_test = test_target['baignade']
-        y_train = train_target['baignade']
+        train, test = train_test(data_model)
 
-        #scaler = StandardScaler()
-        #x_train.iloc[:,0:25] = scaler.fit_transform(x_train.iloc[:,0:25])
-        #x_test.iloc[:,0:25] = scaler.fit_transform(x_test.iloc[:,0:25])
+        explicative_columns = [x for x in train.columns if x not in "baignade"]
+        y_train = train.baignade
+        y_train = pd.DataFrame(y_train,columns=["baignade"])
+        x_train = train[explicative_columns]
+
+        y_test = test.baignade
+        y_test = pd.DataFrame(y_test,columns=["baignade"])
+        x_test = test[explicative_columns]
+
+
         # predict
         y_pred_train = model.predict(x_train)
         y_pred_test = model.predict(x_test)
@@ -513,29 +532,37 @@ elif choix_page == "Prédiction":
 
 
 elif choix_page == "Meilleur modèle":
-    st.markdown('<p class="grand_titre">Résultat du meilleur modèle</p>', unsafe_allow_html=True)
+    st.markdown('<p class="grand_titre">Résultats du meilleur modèle</p>', unsafe_allow_html=True)
     st.write("##")    
     st.write("##")
     st.write("##")
     st.subheader('Évaluation du modèle sur les données de validation') 
     # load model 
-    model = joblib.load(os.path.join(Saved_model_DATAPATH, RF))
+    model = joblib.load(os.path.join(Saved_model_DATAPATH, RLOGIST))
 
     #train test data
-    x_train, x_test = train_test(data_model.iloc[:,1:])
-    train_target,test_target = train_test(target)
-    y_test = test_target['baignade']
-    y_train = train_target['baignade']
-    # predict
+    train, test = train_test(data_model)
+
+    explicative_columns = [x for x in train.columns if x not in "baignade"]
+    y_train = train.baignade
+    y_train = pd.DataFrame(y_train,columns=["baignade"])
+    x_train = train[explicative_columns]
+
+    y_test = test.baignade
+    y_test = pd.DataFrame(y_test,columns=["baignade"])
+    x_test = test[explicative_columns]
+
+
+        # predict
     y_pred_train = model.predict(x_train)
     y_pred_test = model.predict(x_test)
 
 
     # metrics on test
     accur_test = accuracy_score(y_test, y_pred_test)
-    precis_test = precision_score(y_test, y_pred_test, average='micro')
-    rappel_test = recall_score(y_test, y_pred_test, average='micro')
-    F1_test = f1_score(y_test, y_pred_test, average='micro')
+    precis_test = precision_score(y_test, y_pred_test)
+    rappel_test = recall_score(y_test, y_pred_test)
+    F1_test = f1_score(y_test, y_pred_test)
     _, col1_dt, _ = st.columns((0.1, 1, 0.1))
     _, col1_eval_modele, col2_eval_modele, col3_eval_modele, col4_eval_modele, _ = st.columns((0.3, 0.5, 0.5, 0.5, 0.5, 0.1))
     # Affichage métriques
