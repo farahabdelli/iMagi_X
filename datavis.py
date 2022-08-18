@@ -19,8 +19,8 @@ from sklearn.metrics import plot_confusion_matrix, plot_roc_curve
 def train_test(df):
 
     
-    train = df.iloc[:1100,1:]
-    test =  df.iloc[1101:,1:]
+    train = df.iloc[:58000]
+    test =  df.iloc[58001:]
     
     return train, test
 
@@ -56,7 +56,7 @@ def plot_metrics(metrics_list):
 #paths
 ABS_DATAPATH = os.path.abspath('data/')
 Saved_model_DATAPATH = os.path.abspath('saved_models/')
-PREP_DATA = 'features_res.csv' 
+PREP_DATA = 'all_features_res.csv'
 LABEL_DATA = 'descriptif_hiver_ete.csv' 
 DESC_DATA = 'descriptif.csv' 
 RLOGIST = 'reg_logist6.joblib'
@@ -194,8 +194,8 @@ elif choix_page == "Description des données":
         st_lottie(load_lottieurl('https://assets9.lottiefiles.com/packages/lf20_zidar9jm.json'), height=200)
     with col1_1:
         dataset_choix = st.selectbox("Dataset",
-                                     ["-- Choisissez une option --", "Evènements","Mesures de température","Features",
-                                      "Descriptifs (Label)"], )
+                                     ["-- Choisissez une option --", "Evènements","Mesures de température","Descriptifs (Label)","Features"
+                                      ], )
         message_ = st.empty()
 
     if 'choix_dataset' in st.session_state:
@@ -205,8 +205,8 @@ elif choix_page == "Description des données":
 
 
 
-    noms_fichiers =  ["Evènements","Mesures de température","Features", "Descriptifs (Label)"]
-    path_fichiers = ['data/all_data.csv','data/temp_data.csv','data/all_features.csv', 'data/descriptif.csv']
+    noms_fichiers =  ["Evènements","Mesures de température", "Descriptifs (Label)","Features"]
+    path_fichiers = ['data/all_data.csv','data/temp_data.csv', 'data/descriptif_hiver_ete.csv','data/all_features.csv']
 
     for i, j in zip(noms_fichiers, path_fichiers):
         if dataset_choix == i:
@@ -238,7 +238,7 @@ elif choix_page == "Description des données":
                     fig=px.histogram(st.session_state.data,x=st.session_state.data.columns[1],color=st.session_state.data.columns[1], width=800, height=400)
                     st.plotly_chart(fig)
             else :
-                col1, b, col2 = st.columns((2.7, 0.2, 1.4))
+                col1, b, col2 = st.columns((1.2, 0.2, 1.4))
                 st.session_state.data = pd.read_csv(j,sep=";")
                 st.session_state.choix_dataset = "Le fichier chargé est le dataset " + i
                 with col1_1:
@@ -259,6 +259,26 @@ elif choix_page == "Description des données":
                         sum(pd.DataFrame(st.session_state.data).isna().sum(axis=1).tolist()) * 100 / (
                                 st.session_state.data.shape[0] * st.session_state.data.shape[1]), 2),
                             '%')
+
+                    fig = pyplt.figure(figsize=(10, 4))
+                    
+                    fig=px.histogram(st.session_state.data,x=st.session_state.data.columns[26],color=st.session_state.data.columns[26], width=800, height=400)
+                    st.plotly_chart(fig)
+                    
+                    if st.button("Voir les données après rééchantillonnage", key='Voir les données après rééchantillonnage'):
+                        
+                        st.write("##")
+                        st.markdown('<p class="section">Caractéristiques des données après rééchantillonnage</p>', unsafe_allow_html=True)
+                        st.write(' - Taille:', st.session_state.data.shape)
+                        st.write(' - Nombre de valeurs:', st.session_state.data.shape[0] * st.session_state.data.shape[1])
+                        st.write(' - Pourcentage de valeurs manquantes:', round(
+                            sum(pd.DataFrame(st.session_state.data).isna().sum(axis=1).tolist()) * 100 / (
+                                    st.session_state.data.shape[0] * st.session_state.data.shape[1]), 2),
+                                '%')
+                        fig=px.histogram(data_model,x=data_model.columns[25],color=data_model.columns[25], width=800, height=400)
+                        st.plotly_chart(fig)
+                        
+
 
                 
 
