@@ -2,6 +2,7 @@ import pandas as pd
 import requests
 import plotly.express as px
 import os
+import numpy as np
 import joblib
 import matplotlib.pyplot as pyplt
 import streamlit as st
@@ -51,7 +52,25 @@ def plot_metrics(metrics_list):
         plot_roc_curve(model, x_test, y_test)
         st.set_option('deprecation.showPyplotGlobalUse', False)
         st.pyplot()
+
+def plot_importance(model,x_test):
+    importance = model.coef_[0]
+    sel = np.abs(importance*2.5*100)
     
+    # plot feature importance
+    st.write('##')
+    st.subheader(" Meilleurs paramètres")
+    pyplt.figure(figsize=(15, 8))
+    pyplt.bar([x for x in x_test.columns], sel)
+    pyplt.xticks(fontsize=10, rotation=70)
+    pyplt.ylabel('Feature Importance', fontsize = 14)
+    columns = pd.DataFrame(x_test.columns,columns=['features'])
+
+    score = pd.DataFrame(sel,columns=['score'])
+    imp= pd.concat([columns, score],axis=1)
+    imp = imp.sort_values('score',ascending=False).reset_index(drop=True).head(10)
+    
+    return st.pyplot(),st.table(imp)
 
 #paths
 ABS_DATAPATH = os.path.abspath('data/')
@@ -61,7 +80,9 @@ LABEL_DATA = 'descriptif_hiver_ete.csv'
 DESC_DATA = 'descriptif.csv' 
 RLOGIST = 'reg_logist6.joblib'
 RF = 'random_forest7.joblib'
+#RF = 'random_forest3.joblib'
 Dtree = 'decision_tree4.joblib'
+#Dtree = 'decision_tree3.joblib'
 
 # load data
 data_model = pd.read_csv(os.path.join(ABS_DATAPATH, PREP_DATA), sep=';')
@@ -323,8 +344,9 @@ elif choix_page == "Prédiction":
         model = joblib.load(os.path.join(Saved_model_DATAPATH, RF))
 
         #train test data
-        train, test = train_test(data_model)
-
+        #train, test = train_test(data_model)
+        train = train_test(data_model)
+        test = train_test(target)
         explicative_columns = [x for x in train.columns if x not in "baignade"]
         y_train = train.baignade
         y_train = pd.DataFrame(y_train,columns=["baignade"])
@@ -336,6 +358,7 @@ elif choix_page == "Prédiction":
         # predict
         y_pred_train = model.predict(x_train)
         y_pred_test = model.predict(x_test)
+
 
         # metrics on train
         accur_train = accuracy_score(y_train, y_pred_train)
@@ -414,6 +437,8 @@ elif choix_page == "Prédiction":
         y_test = test.baignade
         y_test = pd.DataFrame(y_test,columns=["baignade"])
         x_test = test[explicative_columns]
+
+
         # predict
         y_pred_train = model.predict(x_train)
         y_pred_test = model.predict(x_test)
@@ -429,7 +454,7 @@ elif choix_page == "Prédiction":
         precis_test = precision_score(y_test, y_pred_test)
         rappel_test = recall_score(y_test, y_pred_test)
         F1_test = f1_score(y_test, y_pred_test)
-        _, col1_dt, _ = st.columns((0.5, 1, 0.1))
+        col1_dt, _ = st.columns((1, 0.1))
         _, col1_eval_modele, col2_eval_modele, col3_eval_modele, col4_eval_modele, _ = st.columns((0.3, 0.5, 0.5, 0.5, 0.5, 0.1))
         # Affichage métriques
 
@@ -439,8 +464,7 @@ elif choix_page == "Prédiction":
             with col1_dt:
 
                 st.write("##")
-                st.write("##")
-                st.write("##")
+            
                 st.subheader('Évaluation par rapport au train set')
                 st.write("##")
                 st.write("##")
@@ -544,6 +568,8 @@ elif choix_page == "Prédiction":
             st.write("##")  
             plot_metrics(metrics)
 
+        st.write("##")
+
    
 ############# Fin Classification #############
 
@@ -553,12 +579,10 @@ elif choix_page == "Prédiction":
 
 elif choix_page == "Meilleur modèle":
     st.markdown('<p class="grand_titre">Résultats du meilleur modèle</p>', unsafe_allow_html=True)
-    st.write("##")    
-    st.write("##")
-    st.write("##")
-    st.subheader('Évaluation du modèle sur les données de validation') 
+
+    #st.subheader('Évaluation du modèle sur les données de validation') 
     # load model 
-    model = joblib.load(os.path.join(Saved_model_DATAPATH, RLOGIST))
+    model = joblib.load(os.path.join(Saved_model_DATAPATH, "reg_logist6.joblib"))
 
     #train test data
     train, test = train_test(data_model)
@@ -568,9 +592,9 @@ elif choix_page == "Meilleur modèle":
     y_train = pd.DataFrame(y_train,columns=["baignade"])
     x_train = train[explicative_columns]
 
-    y_test = test.baignade
+    y_test = test.baignade[5000:]
     y_test = pd.DataFrame(y_test,columns=["baignade"])
-    x_test = test[explicative_columns]
+    x_test = test[explicative_columns][5000:]
 
 
         # predict
@@ -589,17 +613,14 @@ elif choix_page == "Meilleur modèle":
 
 
      
-    with col1_eval_modele:
-        st.metric(label="Precision", value=round(precis_test, 3))
-    with col2_eval_modele:
-        st.metric(label="Recall", value=round(rappel_test, 3))
-    with col3_eval_modele:
-        st.metric(label="F1 score", value=round(F1_test, 3))
-    with col4_eval_modele:
-        st.metric(label="Accuracy", value=round(accur_test, 3))  
+
                     
-    metrics = ['Confusion Matrix', 'ROC Curve']
+    metrics = ['Confusion Matrix']
     plot_metrics(metrics)
+    plot_importance(model,x_train)
+
+
+
 
 
 
