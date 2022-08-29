@@ -79,8 +79,8 @@ PREP_DATA = 'all_features_res.csv'
 LABEL_DATA = 'descriptif_hiver_ete.csv' 
 DESC_DATA = 'descriptif.csv' 
 RLOGIST = 'reg_logist6.joblib'
-RF = 'random_forest7.joblib'
-#RF = 'random_forest3.joblib'
+#RF = 'random_forest7.joblib'
+RF = 'random_forest3.joblib'
 Dtree = 'decision_tree4.joblib'
 #Dtree = 'decision_tree3.joblib'
 
@@ -173,7 +173,7 @@ if choix_page == "Accueil":
     unsafe_allow_html=True)
 
     st.markdown(
-    "<p class='intro'>En vu de réaliser tout ce qui précède, j'ai mis en place une infrastructure Big Data permettant à la fois de collecter, stocker, analyser et enfin, visualiser les données traitées. Accompagnée d'un traitement en temps réel des flux de données générées par la solution domotique i-MAGI-X et de plusieurs algorithmes d'apprentissage automatiques. Ce traitement est basé sur l'analyses des sondes (pH, Redox), des pompes (filtration, chauffage) et des différents équipements en options tels que la nage à contre courant , les robots de nettoyages et les dispositifs de sécurité ,etc.</p>",
+    "<p class='intro'>En vu de réaliser tout ce qui précède, j'ai mis en place une infrastructure Big Data permettant à la fois de collecter, stocker, analyser et enfin, visualiser les données traitées. Cette infrastructure est accompagnée d'un traitement en temps réel des flux de données générées par la solution domotique i-MAGI-X et de plusieurs algorithmes d'apprentissage automatiques. Ce traitement est basé sur l'analyses des sondes (pH, Redox), des pompes (filtration, chauffage) et des différents équipements en options tels que la nage à contre courant , les robots de nettoyages et les dispositifs de sécurité ,etc.</p>",
     unsafe_allow_html=True)
 
     st.markdown(
@@ -309,14 +309,14 @@ elif choix_page == "Description des données":
 
 
 elif choix_page == "Prédiction":
-    PAGES_Prédiction = ["RL", "RF", "Decision Tree"]
+    PAGES_Prédiction = ["Logistic regression", "Decision Tree", "Random Forest"]
     st.write("##")
     st.sidebar.title('Choisissez un modèle  ')
     st.sidebar.radio(label="", options=PAGES_Prédiction, key="choix_page_classification")
     st.markdown('<p class="grand_titre"> Les résultats de la prédiction</p>', unsafe_allow_html=True)
            
 
-    if st.session_state.choix_page_classification == "RF":
+    if st.session_state.choix_page_classification == "Random Forest":
         st.sidebar.title("Choisissez une métrique d'évaluation ")
         metrics = st.sidebar.multiselect("", ('Confusion Matrix', 'ROC Curve'))
         st.write("##")
@@ -326,27 +326,20 @@ elif choix_page == "Prédiction":
         with exp2:
             with st.expander("Principe de l'algorithme des forêts aléatoires :"):
                 st.write("""
-                * 1ère étape : Sélectionner K points de données aléatoires dans l'ensemble d'apprentissage.
-                * 2ème étape : Construire les arbres de décision associés aux points de données sélectionnés (sous-ensembles).
-                * 3ème étape : Choisir le nombre N pour les arbres de décision à créer
-                * 4ème étape : Répéter les étapes 1 et 2
-                * 5ème étape : Pour les nouveaux points de données, rechercher les prédictions de chaque arbre de décision 
-                    et attribuer les nouvea
-                    ux points de données à la catégorie qui remporte la majorité des votes.
+                * Le random forest est composé de plusieurs arbres de décision, entrainés de manière indépendante sur des sous-ensembles du data set d'apprentissage (méthode de bagging). Chacun produit une estimation, et c'est la combinaison des résultats qui va donner la prédiction finale qui se traduit par une variance réduite. En somme, il s'agit de s'inspirer de différents avis, traitant un même problème, pour mieux l'appréhender. Chaque modèle est distribué de façon aléatoire en sous-ensembles d'arbres décisionnels. 
                 """)
                 st.write("##")
                 st.image("images/rf.jpg",use_column_width=None)
         st.write("##")
         st.write("##")
-         
 
-        # load model 
+
+# load model 
         model = joblib.load(os.path.join(Saved_model_DATAPATH, RF))
 
         #train test data
-        #train, test = train_test(data_model)
-        train = train_test(data_model)
-        test = train_test(target)
+        train, test = train_test(data_model)
+
         explicative_columns = [x for x in train.columns if x not in "baignade"]
         y_train = train.baignade
         y_train = pd.DataFrame(y_train,columns=["baignade"])
@@ -355,9 +348,12 @@ elif choix_page == "Prédiction":
         y_test = test.baignade
         y_test = pd.DataFrame(y_test,columns=["baignade"])
         x_test = test[explicative_columns]
+
+
         # predict
         y_pred_train = model.predict(x_train)
         y_pred_test = model.predict(x_test)
+
 
 
         # metrics on train
@@ -412,12 +408,12 @@ elif choix_page == "Prédiction":
         st.write("##")
         exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
         with exp2:
-            with st.expander("Principe de l'algorithme decision tree"):
+            with st.expander("Principe de l'algorithme des arbres de décision"):
                 st.write("""
-                * Le principe des SVM consiste à ramener un problème de classification ou de discrimination à un hyperplan (feature space) dans lequel les données sont séparées en plusieurs classes dont la frontière est la plus éloignée possible des points de données (ou "marge maximale") 
-                """)
+                * Un arbre de décision est un outil d'aide à la décision représentant un ensemble de choix sous la forme graphique d'un arbre. Les différentes décisions possibles sont situées aux extrémités des branches (les « feuilles » de l'arbre), et sont atteintes en fonction de décisions prises à chaque étape.
+""")
                 st.write("##")
-                st.image("images/svm.png",use_column_width=None)
+                st.image("images/decision-tree.png",use_column_width=None)
 
         st.write("##")
         st.write("##")
@@ -485,7 +481,7 @@ elif choix_page == "Prédiction":
             
             plot_metrics(metrics)
 
-    elif st.session_state.choix_page_classification == "RL":
+    elif st.session_state.choix_page_classification == "Logistic regression":
         st.sidebar.title("Choisissez une métrique d'évaluation ")
         metrics = st.sidebar.multiselect("", ('Confusion Matrix', 'ROC Curve'))
         st.write("##")        
@@ -493,7 +489,7 @@ elif choix_page == "Prédiction":
         st.write("##")
         exp1, exp2, exp3 = st.columns((0.2, 1, 0.2))
         with exp2:
-            with st.expander("Principe de l'algorithme RL"):
+            with st.expander("Principe de l'algorithme de la régression logistique"):
                 st.write("""
                 * La régression logistique est un type d'apprentissage automatique supervisé utilisé pour prédire la probabilité d'une variable cible. Il est utilisé pour estimer la relation entre une variable dépendante (cible) et une ou plusieurs variables indépendantes. La sortie de la variable dépendante est représentée en valeurs discrètes telles que 0 et 1.
                 """)
@@ -578,7 +574,7 @@ elif choix_page == "Prédiction":
 
 
 elif choix_page == "Meilleur modèle":
-    st.markdown('<p class="grand_titre">Résultats du meilleur modèle</p>', unsafe_allow_html=True)
+    st.markdown('<p class="grand_titre">Résultats du meilleur modèle sur les données de validation</p>', unsafe_allow_html=True)
 
     #st.subheader('Évaluation du modèle sur les données de validation') 
     # load model 
@@ -616,6 +612,7 @@ elif choix_page == "Meilleur modèle":
 
                     
     metrics = ['Confusion Matrix']
+    
     plot_metrics(metrics)
     plot_importance(model,x_train)
 
