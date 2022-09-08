@@ -25,6 +25,14 @@ def train_test(df):
     
     return train, test
 
+def train_test2(df):
+
+    
+    train = df.iloc[:28000,1:]
+    test =  df.iloc[28001:,1:]
+    
+    return train, test
+
 
 class_names = ['Absence', 'Présence']
 
@@ -76,16 +84,18 @@ def plot_importance(model,x_test):
 ABS_DATAPATH = os.path.abspath('data/')
 Saved_model_DATAPATH = os.path.abspath('saved_models/')
 PREP_DATA = 'all_features_res.csv'
+PREP_DATA2 = 'all_features.csv'
 LABEL_DATA = 'descriptif_hiver_ete.csv' 
 DESC_DATA = 'descriptif.csv' 
 RLOGIST = 'reg_logist6.joblib'
 #RF = 'random_forest7.joblib'
 RF = 'random_forest3.joblib'
-Dtree = 'decision_tree4.joblib'
+Dtree = 'decision_tree2.joblib'
 #Dtree = 'decision_tree3.joblib'
 
 # load data
-data_model = pd.read_csv(os.path.join(ABS_DATAPATH, PREP_DATA), sep=';')
+data_modelrl = pd.read_csv(os.path.join(ABS_DATAPATH, PREP_DATA), sep=';')
+data_model = pd.read_csv(os.path.join(ABS_DATAPATH, PREP_DATA2), sep=';')
 target = pd.read_csv(os.path.join(ABS_DATAPATH, LABEL_DATA), sep=';') 
 target_ete = pd.read_csv(os.path.join(ABS_DATAPATH, DESC_DATA), sep=';') 
 
@@ -165,7 +175,7 @@ if choix_page == "Accueil":
 
 
     st.write("""
-# Comment peut-on prédire la présence dans une piscine Magiline ?
+# Comment peut-on prédire l'usage d'une piscine Magiline ?
 """)
     st.write("##")
     st.markdown(
@@ -338,7 +348,7 @@ elif choix_page == "Prédiction":
         model = joblib.load(os.path.join(Saved_model_DATAPATH, RF))
 
         #train test data
-        train, test = train_test(data_model)
+        train, test = train_test2(data_model)
 
         explicative_columns = [x for x in train.columns if x not in "baignade"]
         y_train = train.baignade
@@ -423,7 +433,7 @@ elif choix_page == "Prédiction":
         model = joblib.load(os.path.join(Saved_model_DATAPATH, Dtree))
 
         #train test data
-        train, test = train_test(data_model)
+        train, test = train_test2(data_model)
 
         explicative_columns = [x for x in train.columns if x not in "baignade"]
         y_train = train.baignade
@@ -504,7 +514,7 @@ elif choix_page == "Prédiction":
         model = joblib.load(os.path.join(Saved_model_DATAPATH, RLOGIST))
 
         #train test data
-        train, test = train_test(data_model)
+        train, test = train_test(data_modelrl)
 
         explicative_columns = [x for x in train.columns if x not in "baignade"]
         y_train = train.baignade
@@ -574,14 +584,14 @@ elif choix_page == "Prédiction":
 
 
 elif choix_page == "Meilleur modèle":
-    st.markdown('<p class="grand_titre">Résultats du meilleur modèle sur les données de validation</p>', unsafe_allow_html=True)
+    st.markdown('<p class="grand_titre">Résultats du meilleur modèle</p>', unsafe_allow_html=True)
 
     #st.subheader('Évaluation du modèle sur les données de validation') 
     # load model 
     model = joblib.load(os.path.join(Saved_model_DATAPATH, "reg_logist6.joblib"))
 
     #train test data
-    train, test = train_test(data_model)
+    train, test = train_test(data_modelrl)
 
     explicative_columns = [x for x in train.columns if x not in "baignade"]
     y_train = train.baignade
@@ -613,7 +623,7 @@ elif choix_page == "Meilleur modèle":
                     
     metrics = ['Confusion Matrix']
     
-    plot_metrics(metrics)
+    #plot_metrics(metrics)
     plot_importance(model,x_train)
 
 
