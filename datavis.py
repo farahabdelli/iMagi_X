@@ -582,7 +582,7 @@ elif choix_page == "Prédiction":
 
 
 elif choix_page == "Meilleur modèle":
-    st.markdown('<p class="grand_titre">Résultats du meill
+    st.markdown('<p class="grand_titre">Résultats du meilleur modèle </p>', unsafe_allow_html=True)
     # load model 
     model = joblib.load(os.path.join(Saved_model_DATAPATH, "reg_logist6.joblib"))
 
