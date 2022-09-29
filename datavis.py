@@ -294,18 +294,7 @@ elif choix_page == "Description des données":
                     fig=px.histogram(st.session_state.data,x=st.session_state.data.columns[26],color=st.session_state.data.columns[26], width=800, height=400)
                     st.plotly_chart(fig)
                     
-                    """if st.button("Voir les données après rééchantillonnage", key='Voir les données après rééchantillonnage'):
-                        
-                        st.write("##")
-                        st.markdown('<p class="section">Caractéristiques des données après rééchantillonnage</p>', unsafe_allow_html=True)
-                        st.write(' - Taille:', st.session_state.data.shape)
-                        st.write(' - Nombre de valeurs:', st.session_state.data.shape[0] * st.session_state.data.shape[1])
-                        st.write(' - Pourcentage de valeurs manquantes:', round(
-                            sum(pd.DataFrame(st.session_state.data).isna().sum(axis=1).tolist()) * 100 / (
-                                    st.session_state.data.shape[0] * st.session_state.data.shape[1]), 2),
-                                '%')
-                        fig=px.histogram(data_model,x=data_model.columns[25],color=data_model.columns[25], width=800, height=400)
-                        st.plotly_chart(fig)"""
+
                         
 
 
