@@ -15,7 +15,6 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import plot_confusion_matrix, plot_roc_curve
 
-#from prediction import train_test
 
 def train_test(df):
 
@@ -88,10 +87,9 @@ PREP_DATA2 = 'all_features.csv'
 LABEL_DATA = 'descriptif_hiver_ete.csv' 
 DESC_DATA = 'descriptif.csv' 
 RLOGIST = 'reg_logist6.joblib'
-#RF = 'random_forest7.joblib'
 RF = 'random_forest3.joblib'
 Dtree = 'decision_tree2.joblib'
-#Dtree = 'decision_tree3.joblib'
+
 
 # load data
 data_modelrl = pd.read_csv(os.path.join(ABS_DATAPATH, PREP_DATA), sep=';')
@@ -296,7 +294,7 @@ elif choix_page == "Description des données":
                     fig=px.histogram(st.session_state.data,x=st.session_state.data.columns[26],color=st.session_state.data.columns[26], width=800, height=400)
                     st.plotly_chart(fig)
                     
-                    if st.button("Voir les données après rééchantillonnage", key='Voir les données après rééchantillonnage'):
+                    """if st.button("Voir les données après rééchantillonnage", key='Voir les données après rééchantillonnage'):
                         
                         st.write("##")
                         st.markdown('<p class="section">Caractéristiques des données après rééchantillonnage</p>', unsafe_allow_html=True)
@@ -307,7 +305,7 @@ elif choix_page == "Description des données":
                                     st.session_state.data.shape[0] * st.session_state.data.shape[1]), 2),
                                 '%')
                         fig=px.histogram(data_model,x=data_model.columns[25],color=data_model.columns[25], width=800, height=400)
-                        st.plotly_chart(fig)
+                        st.plotly_chart(fig)"""
                         
 
 
@@ -584,9 +582,7 @@ elif choix_page == "Prédiction":
 
 
 elif choix_page == "Meilleur modèle":
-    st.markdown('<p class="grand_titre">Résultats du meilleur modèle</p>', unsafe_allow_html=True)
-
-    #st.subheader('Évaluation du modèle sur les données de validation') 
+    st.markdown('<p class="grand_titre">Résultats du meill
     # load model 
     model = joblib.load(os.path.join(Saved_model_DATAPATH, "reg_logist6.joblib"))
 
